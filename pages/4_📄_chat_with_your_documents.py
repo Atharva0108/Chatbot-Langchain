@@ -1,6 +1,7 @@
 import os
 import utils
 import streamlit as st
+import time
 from streaming import StreamHandler
 
 from langchain.memory import ConversationBufferMemory
@@ -9,11 +10,19 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import DocArrayInMemorySearch
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+# -----------------------
+# Page configuration
+# -----------------------
+st.set_page_config(page_title="Chat with Documents", page_icon="📄", layout="wide")
 
-st.set_page_config(page_title="ChatPDF", page_icon="📄")
-st.header('Chat with your documents (Basic RAG)')
-st.write('Has access to custom documents and can respond to user queries by referring to the content within those documents')
-st.write('[![view source code ](https://img.shields.io/badge/view_source_code-gray?logo=github)](https://github.com/shashankdeshpande/langchain-chatbot/blob/master/pages/4_%F0%9F%93%84_chat_with_your_documents.py)')
+# Header
+st.markdown("""
+<div style="text-align: center; margin-bottom: 20px;">
+    <h1 style="color:#1e7ebf;">Chat with Your Documents</h1>
+    <p style="color:#666; font-size:16px;">Upload PDFs and ask questions. Get answers referencing the content.</p>
+</div>
+""", unsafe_allow_html=True)
+
 
 class CustomDocChatbot:
 
@@ -32,7 +41,7 @@ class CustomDocChatbot:
             f.write(file.getvalue())
         return file_path
 
-    @st.spinner('Analyzing documents..')
+    @st.spinner('Analyzing documents...')
     def setup_qa_chain(self, uploaded_files):
         # Load documents
         docs = []
@@ -75,36 +84,67 @@ class CustomDocChatbot:
     @utils.enable_chat_history
     def main(self):
 
-        # User Inputs
-        uploaded_files = st.sidebar.file_uploader(label='Upload PDF files', type=['pdf'], accept_multiple_files=True)
+        # Sidebar for PDF uploads
+        uploaded_files = st.sidebar.file_uploader(
+            label='Upload PDF files',
+            type=['pdf'],
+            accept_multiple_files=True
+        )
         if not uploaded_files:
-            st.error("Please upload PDF documents to continue!")
+            st.warning("Please upload PDF documents to start chatting!")
             st.stop()
 
-        user_query = st.chat_input(placeholder="Ask me anything!")
+        user_query = st.chat_input(placeholder="Ask your question based on uploaded documents...")
 
         if uploaded_files and user_query:
-            qa_chain = self.setup_qa_chain(uploaded_files)
+            try:
+                qa_chain = self.setup_qa_chain(uploaded_files)
+            except Exception as e:
+                st.error(f"⚠️ Error processing documents: {str(e)}")
+                st.stop()
 
             utils.display_msg(user_query, 'user')
 
             with st.chat_message("assistant"):
-                st_cb = StreamHandler(st.empty())
-                result = qa_chain.invoke(
-                    {"question":user_query},
-                    {"callbacks": [st_cb]}
+                placeholder = st.empty()
+
+                # Typing animation
+                for dots in ["", ".", "..", "..."]:
+                    placeholder.markdown(
+                        f"<span style='color:#666; font-size:16px;'>Processing{dots}</span>",
+                        unsafe_allow_html=True
+                    )
+                    time.sleep(0.3)
+
+                try:
+                    st_cb = StreamHandler(placeholder)
+                    result = qa_chain.invoke(
+                        {"question": user_query},
+                        {"callbacks": [st_cb]}
+                    )
+                    response = result.get("answer", "⚠️ Couldn’t fetch a proper answer.")
+
+                except Exception as e:
+                    response = f"⚠️ Failed to get response: {str(e)}"
+
+                # Display answer
+                placeholder.markdown(
+                    f"<span style='color:#1e7ebf; font-size:16px;'>{response}</span>",
+                    unsafe_allow_html=True
                 )
-                response = result["answer"]
+
                 st.session_state.messages.append({"role": "assistant", "content": response})
                 utils.print_qa(CustomDocChatbot, user_query, response)
 
-                # to show references
-                for idx, doc in enumerate(result['source_documents'],1):
-                    filename = os.path.basename(doc.metadata['source'])
-                    page_num = doc.metadata['page']
-                    ref_title = f":blue[Reference {idx}: *{filename} - page.{page_num}*]"
-                    with st.popover(ref_title):
-                        st.caption(doc.page_content)
+                # Display references in interactive popovers
+                if 'source_documents' in result:
+                    for idx, doc in enumerate(result['source_documents'], 1):
+                        filename = os.path.basename(doc.metadata['source'])
+                        page_num = doc.metadata.get('page', 'N/A')
+                        ref_title = f":blue[Reference {idx}: *{filename} - page {page_num}*]"
+                        with st.expander(ref_title):
+                            st.write(doc.page_content)
+
 
 if __name__ == "__main__":
     obj = CustomDocChatbot()
