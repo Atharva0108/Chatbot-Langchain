@@ -1,15 +1,43 @@
+# Core LangChain
 langchain==0.3.13
 langchainhub==0.1.21
-langchain_community==0.3.13
-langchain_core==0.3.28
-langchain_openai==0.2.14
-langchain_text_splitters==0.3.4
+langchain-community==0.3.13
+langchain-core==0.3.28
+langchain-openai==0.2.14
+langchain-text-splitters==0.3.4
+langsmith==0.2.11
+
+# LLM + API
 openai==1.58.1
-Requests==2.32.3
-SQLAlchemy==2.0.36
-streamlit==1.41.1
-validators==0.34.0
+tiktoken==0.11.0
+
+# Embeddings
 fastembed==0.4.2
+numpy==1.26.4
+pandas==2.3.2
+
+# Parsing and docs
 pypdf==5.1.0
-duckduckgo_search==7.0.1
-pydantic==2.10.6
+lxml==6.0.2
+beautifulsoup4==4.13.5
+
+# Database
+SQLAlchemy==2.0.36
+pymongo==4.15.1
+
+# Web + Requests
+requests==2.32.3
+validators==0.34.0
+duckduckgo-search==7.0.1
+httpx==0.28.1
+
+# Streamlit + UI
+streamlit==1.41.1
+altair==5.5.0
+pydeck==0.9.1
+
+# Utility
+python-dotenv==1.1.1
+tenacity==9.1.2
+typing-extensions==4.15.0
+rich==13.9.4
