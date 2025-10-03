@@ -1,34 +1,33 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.209.6/containers/python-3
+// For format details, see https://aka.ms/devcontainer.json
 {
-    "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
-    "customizations": {
-        "codespaces": {
-          "openFiles": [
-            "README.md",
-            "Home.py"
-          ]
-        },
-        "vscode": {
-          "settings": {},
-          "extensions": [
-            "ms-python.python",
-            "ms-python.vscode-pylance"
-          ]
-        }
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+  "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "README.md",
+        "Home.py"
+      ]
+    },
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
       },
-    "forwardPorts": [
-        8501
-    ],
-    "postCreateCommand": "pip3 install --user -r requirements.txt",
-    "postAttachCommand": {
-        "server": "streamlit run Home.py --server.enableCORS false --server.enableXsrfProtection false"
-    },
-    "portsAttributes": {
-        "8501": {
-            "label": "Application",
-            "onAutoForward": "openPreview"
-        }
-    },
-    "remoteUser": "vscode"
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  },
+  "forwardPorts": [8501],
+  "postCreateCommand": "pip install -r requirements.txt",
+  "postAttachCommand": {
+    "server": "streamlit run Home.py --server.enableCORS false --server.enableXsrfProtection false --server.port 8501"
+  },
+  "portsAttributes": {
+    "8501": {
+      "label": "Chatbot App",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "remoteUser": "vscode"
 }
