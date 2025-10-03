@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"   # Ollama server exposed
+    volumes:
+      - ollama_models:/root/.ollama   # Persist models (so they don’t re-download every time)
+
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatbot
+    restart: always
+    depends_on:
+      - ollama
+    ports:
+      - "8501:8501"   # Streamlit exposed
+    environment:
+      - OLLAMA_API_BASE=http://ollama:11434  # chatbot talks to Ollama inside Docker network
+    volumes:
+      - .:/app   # Mount project files (optional for development)
+
+volumes:
+  ollama_models:
